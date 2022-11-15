@@ -10,7 +10,8 @@
 
 
 (struct prim-proc (op) #:transparent)
-
+(struct closure (params body env) #:transparent)
+ 
 
 
 (define primitive-operators '(+ - * /
@@ -94,6 +95,8 @@
 (define (apply-proc proc args)
   (cond [(prim-proc? proc)
          (apply-primitive-op (prim-proc-op proc) args)]
+        ;[(closures? proc)
+         ;[ 
         [else (error 'apply-proc "bad procedure: ~s" proc)]))
 
 
@@ -111,6 +114,11 @@
          (eval-exp (let-exp-proc tree) (env (let-exp-exps tree)
                                             (map (λ (t) (eval-exp t e)) (let-exp-vals tree))
                                             e))]
+       ; [(lambda-exp? tree)
+        ; (closure (lambda-exp-params tree) (lambda-exp-exps tree) (env (lamda-exp-params) ( map (lambda( exp) ( eval-exp exp e)) lambda-exp ]
+
+         ;[ ( set-exp? tree) ( env-lookup e ( 
+         
         [else (error 'eval-exp "Invalid tree: ~s" tree)]))
 
 
