@@ -22,6 +22,16 @@
          let-exp-exps
          let-exp-vals
          let-exp-proc
+         lambda-exp
+         lambda-exp?
+         lambda-exp-exp
+         lambda-exp-params
+         box-val
+         box?
+         set-exp
+         set-exp-sys
+         set-exp-exp
+         set-exp?
          )
 
 
@@ -36,10 +46,11 @@
 
 
 (struct ite-exp (cond then else) #:transparent)
-
-
+(struct box (val) #:transparent)
+(struct set-exp ( sys exp) #:transparent)
 
 (struct let-exp (exps vals proc) #:transparent)
+(struct lambda-exp ( params exp) #:transparent)
 
 
 (define (parse input)
@@ -56,6 +67,9 @@
                                                                                         (map parse (map second (second input)))
                                                                                         (parse (third input)))]
                                                     [else (parse-error)])]
+                 [ (equal? 'lambda ( first input)) (cond [(equal? 3 (length input)) ( lambda-exp (second input) ( parse ( third input)))])]
+                
                  [else (app-exp (parse (first input)) (map parse (rest input)))])]
+          
           [else (parse-error)])))
 
