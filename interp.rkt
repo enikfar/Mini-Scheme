@@ -10,7 +10,8 @@
 
 
 (struct prim-proc (op) #:transparent)
-
+(struct closure (params body env) #:transparent)
+ 
 
 
 (define primitive-operators '(+ - * /
@@ -22,19 +23,19 @@
 
 
 (define boolean-env
-  (env '(False True) '(False True) empty-env))
+  (env '(False True) ( map box '(False True)) empty-env))
 
 
 
 (define prim-env
   (env primitive-operators
-       (map prim-proc primitive-operators)
+      ( map box (map prim-proc primitive-operators))
        boolean-env))
 
 
 
 (define init-env
-  (env '(x y null) '(23 42 ()) prim-env))
+  (env '(x y null) ( map box '( 23 42 ())) prim-env))
 
 
 
@@ -94,12 +95,15 @@
 (define (apply-proc proc args)
   (cond [(prim-proc? proc)
          (apply-primitive-op (prim-proc-op proc) args)]
+        [(closure? proc)
+          ( let ([ e ( env ( closure-params proc) ( map box args) ( closure-env proc))])
+                 (eval-exp (closure-body proc) e))]
         [else (error 'apply-proc "bad procedure: ~s" proc)]))
 
 
 (define (eval-exp tree e)
   (cond [(lit-exp? tree) (lit-exp-num tree)]
-        [(var-exp? tree) (env-lookup e (var-exp-symbol tree))]
+        [(var-exp? tree) ( unbox (env-lookup e (var-exp-symbol tree)))]
         [(app-exp? tree)
          (apply-proc (eval-exp (app-exp-proc tree) e) (map (λ (arg) (eval-exp arg e)) (app-exp-args tree)))]
         [(ite-exp? tree)
@@ -109,8 +113,14 @@
                                                               [else (eval-exp (ite-exp-then tree) e)]))]
         [(let-exp? tree)
          (eval-exp (let-exp-proc tree) (env (let-exp-exps tree)
-                                            (map (λ (t) (eval-exp t e)) (let-exp-vals tree))
+                                            ( map box (map (λ (t) (eval-exp t e)) (let-exp-vals tree)))
                                             e))]
+        [(lambda-exp? tree)
+         (closure (lambda-exp-params tree) (lambda-exp-exp tree)  e)]
+        [ ( set-exp? tree)
+         (set-box! ( env-lookup e (set-exp-sys tree) ) (eval-exp ( set-exp-exp tree) e))]
+       
+         
         [else (error 'eval-exp "Invalid tree: ~s" tree)]))
 
 
