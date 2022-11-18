@@ -119,6 +119,8 @@
          (closure (lambda-exp-params tree) (lambda-exp-exp tree)  e)]
         [ ( set-exp? tree)
          (set-box! ( env-lookup e (set-exp-sys tree) ) (eval-exp ( set-exp-exp tree) e))]
+        [ ( begin-exp? tree)
+          ( foldl (lambda ( exp acc) ( eval-exp exp e)) (void) (begin-exp-exps tree))]
        
          
         [else (error 'eval-exp "Invalid tree: ~s" tree)]))

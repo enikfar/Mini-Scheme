@@ -44,10 +44,7 @@
 ;  [else
 ;   ( second env)]))
 
-(define (extended-env? e)
-(and (list? e)
-(not (null? e))
-(eq? (first e) 'env)))
+
                     
                    
   
@@ -77,23 +74,60 @@
 ;                  [ else
 ;                     (env-lookup-helper ( second env) ( third env) symbol)])]))
 
+(define (extended-env? e)
+(and (list? e)
+(not (null? e))
+(eq? (first e) 'env)))
+
+(define (env-lookup environment symbol)
+(let ([vals (env-vals environment)]
+[syms (env-syms environment)]
+[prev (env-previous environment)])
+(cond
+[(empty? syms)
+(if (empty-env? prev)
+(error 'env-lookup "No binding for ~s" symbol)
+(env-lookup prev symbol)) ]
+[(equal? (car syms) symbol) (car vals)]
+[else (env-lookup (env (cdr syms) (cdr vals) prev) symbol)])))
 
 
-(define (env-lookup e sym)
-(cond [(not (symbol? sym)) (error 'env-lookup "sym is not a symbol")]
-[(empty-env? e) (error 'env-lookup "no binding for ~s" sym)]
-[(extended-env? e)
-(let ([idx (index-of (env-syms e) sym)])
-(if idx
-(list-ref (env-vals e) idx)
-(env-lookup (env-previous e) sym)))]
-[else (error 'env-lookup "e not an env")]))
+
+; test code
+;( let* ( [v 0]
+;         [ f ( lambda(x)
+;                ( set! v ( + v 1))
+;                x)]
+;         )
+;   ( f ( + v 5)))
 
 
 
+( let ([ a 1])
+   ( let ( [ b (lambda (x) ( begin ( set! a ( + 1 a)) a))])
+      ( +  ( b  0) a)))
 
-      
+(let ([ x 5])
+       (let([ y  ( list ( begin ( set! x 10) x))])
+             ( cons x y)))
 
+;( let* ( [ x 10])
+;        [ f ( lambda (x) ( * x x))]
+;          ( f ( - x 5)))
+
+;(define (egg x)
+;  (if (zero? x)
+;      a
+;      (let ([a (* a x)])
+;        (egg (sub1 x)))))
+;(define (ham x)
+;  (let ([a 1])
+;    (egg x)))
+
+( let* ([ z 7]
+       [ f 2]
+       [  myfunc ( lambda(x) (set! z ( * z f)) x)])
+         ( myfunc ( + z 1)))
 
 
 

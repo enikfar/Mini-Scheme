@@ -32,6 +32,9 @@
          set-exp-sys
          set-exp-exp
          set-exp?
+         begin-exp
+         begin-exp-exps
+         begin-exp?
          )
 
 
@@ -55,7 +58,8 @@
 (struct let-exp (exps vals proc) #:transparent)
 
 (struct lambda-exp ( params exp) #:transparent)
-(struct begin-exp ( params exp) #:transparent)
+(struct begin-exp ( exps) #:transparent)
+
 
 
 (define (parse input)
@@ -74,7 +78,8 @@
                                                     [else (parse-error)])]
                  [ (equal? 'lambda ( first input)) (cond [(equal? 3 (length input)) ( lambda-exp (second input) ( parse ( third input)))])]
                  [ ( equal? 'set! ( first input))  ( cond [(equal? 3 ( length input)) ( set-exp ( second input) ( parse (third input)))])]
-                 [ (equal? 'begin ( first input)) ( cond [(equal? 3 ( length input)) ( begin-exp ( parse ( second input)) ( parse ( third input)))])]
+                 [ (equal? 'begin ( first input)) ( begin-exp ( map parse ( rest input)))]
+                 
                 
                 [else (app-exp (parse (first input)) (map parse (rest input)))])]
                  
